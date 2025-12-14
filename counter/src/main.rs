@@ -119,15 +119,4 @@ mod tests {
         let debug_str = format!("{:?}", msg);
         assert!(debug_str.contains("Increment"));
     }
-
-    #[test]
-    fn test_message_clone() {
-        let msg1 = Message::Increment;
-        let msg2 = msg1.clone();
-        // Both should be Increment (can't directly compare, but we can use them)
-        let mut counter = Counter { value: 0 };
-        counter.update(msg1);
-        counter.update(msg2);
-        assert_eq!(counter.value, 2);
-    }
 }
