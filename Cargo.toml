@@ -11,4 +11,4 @@ members = [
 ]
 
 [workspace.dependencies]
-iced = { git = "https://github.com/iced-rs/iced", branch = "master" }
+iced = "0.14"

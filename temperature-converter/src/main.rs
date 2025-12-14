@@ -1,6 +1,6 @@
 use iced::alignment::Vertical;
 use iced::widget::{column, container, row, text, text_input};
-use iced::{Element, Settings, Fill};
+use iced::{Element, Settings};
 
 pub fn main() -> iced::Result {
     iced::application(Calculator::new, Calculator::update, Calculator::view)
