@@ -12,3 +12,4 @@ members = [
 
 [workspace.dependencies]
 iced = "0.14"
+iced_test = "0.14"

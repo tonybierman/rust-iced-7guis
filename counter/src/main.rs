@@ -50,3 +50,29 @@ impl Counter {
             .into()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use iced_test::{Error, simulator};
+
+    #[test]
+    fn it_counts() -> Result<(), Error> {
+        let mut counter = Counter { value: 0 };
+        let mut ui = simulator(counter.view());
+
+        let _ = ui.click("Increment")?;
+        let _ = ui.click("Increment")?;
+
+        for message in ui.into_messages() {
+            counter.update(message);
+        }
+
+        assert_eq!(counter.value, 2);
+
+        let mut ui = simulator(counter.view());
+        assert!(ui.find("2").is_ok(), "Counter should display 2!");
+
+        Ok(())
+    }
+}
