@@ -19,7 +19,7 @@ enum Message {
     FahrenheitChanged(String),
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct Calculator {
     celsius: Option<f32>,
     fahrenheit: Option<f32>,
@@ -78,5 +78,40 @@ impl Calculator {
         container(column![row].padding(20))
             .center_x(iced::Length::Fill)
             .into()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use iced_test::{Error, simulator};
+
+    #[test]
+    #[allow(unused_variables)]
+    fn test_calculator_new() {
+        let (calculator, task) = Calculator::new();
+        assert_eq!(calculator.celsius, Some(0.0));
+        assert_eq!(calculator.fahrenheit, Some(32.0));
+        // Verify task is none (though we can't directly test Task internals easily)
+    }
+
+    #[test]
+    fn test_from_celsius() {
+        let mut calculator = Calculator {
+            celsius_input: "20".to_string(),
+            ..Calculator::default()
+        };
+        calculator.update(Message::CelsiusChanged("20".to_string()));
+        assert_eq!(calculator.fahrenheit, Some(68.0));
+    }
+
+    #[test]
+    fn test_from_farenheit() {
+        let mut calculator = Calculator {
+            fahrenheit_input: "86".to_string(),
+            ..Calculator::default()
+        };
+        calculator.update(Message::FahrenheitChanged("86".to_string()));
+        assert_eq!(calculator.celsius, Some(30.000002));
     }
 }
