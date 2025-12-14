@@ -1,0 +1,14 @@
+[workspace]
+resolver = "2"
+members = [
+    "counter",
+    "temperature-converter",
+    "flight-booker",
+    "timer",
+    "crud",
+    "circle-drawer",
+    "cells",
+]
+
+[workspace.dependencies]
+iced = { git = "https://github.com/iced-rs/iced", branch = "master" }
