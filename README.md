@@ -56,6 +56,18 @@ To build all GUIs:
 cargo build --release
 ```
 
+## Testing
+
+```bash
+cargo llvm-cov --no-cfg-coverage
+```
+
+or
+
+```bash
+cargo llvm-cov --lcov --no-cfg-coverage --output-path lcov.info
+```
+
 ## License
 
 This project is for educational purposes.
