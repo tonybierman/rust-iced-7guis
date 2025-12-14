@@ -87,6 +87,28 @@ mod tests {
     use iced_test::{Error, simulator};
 
     #[test]
+    fn it_calcs() -> Result<(), Error> {
+        let calc = Calculator {
+            fahrenheit_input: "32".to_string(),
+            ..Calculator::default()
+        };
+
+        // TODO: Add more interaction tests here
+        // let mut ui = simulator(calc.view());
+        // let _ = ui.click("Increment")?;
+        // let _ = ui.click("Increment")?;
+        // for message in ui.into_messages() {
+        //     calc.update(message);
+        // }
+        // assert_eq!(counter.value, 2);
+
+        let mut ui = simulator(calc.view());
+        assert!(ui.find("32").is_ok(), "Farenheit should display 32!");
+
+        Ok(())
+    }
+
+    #[test]
     #[allow(unused_variables)]
     fn test_calculator_new() {
         let (calculator, task) = Calculator::new();
