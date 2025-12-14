@@ -8,6 +8,8 @@ pub fn main() -> iced::Result {
             ..Default::default()
         })
         .window_size((200, 80))
+        .centered()
+        .resizable(false)
         .run()
 }
 
