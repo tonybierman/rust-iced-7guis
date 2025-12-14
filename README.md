@@ -14,6 +14,10 @@ Implementation of the [7GUIs benchmark](https://7guis.github.io/7guis/) using Ru
 6. **Circle Drawer** - Undo/Redo functionality
 7. **Cells** - Complex state management (spreadsheet)
 
+## Status
+
+[![CI](https://github.com/tonybierman/rust-iced-7guis/actions/workflows/CI.yml/badge.svg)](https://github.com/tonybierman/rust-iced-7guis/actions/workflows/CI.yml)
+
 ## Structure
 
 This repository is organized as a Cargo workspace with each GUI as a separate binary crate:
@@ -51,11 +55,6 @@ To build all GUIs:
 ```bash
 cargo build --release
 ```
-
-## Requirements
-
-- Rust (latest stable version recommended)
-- System dependencies for Iced (varies by platform)
 
 ## License
 
