@@ -184,3 +184,236 @@ impl App {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use chrono::NaiveDate;
+
+    #[test]
+    fn test_flight_display() {
+        assert_eq!(format!("{}", Flight::OneWay), "One-way flight");
+        assert_eq!(format!("{}", Flight::Return), "Return flight");
+    }
+
+    #[test]
+    fn test_flight_equality() {
+        assert_eq!(Flight::OneWay, Flight::OneWay);
+        assert_eq!(Flight::Return, Flight::Return);
+        assert_ne!(Flight::OneWay, Flight::Return);
+    }
+
+    #[test]
+    fn test_app_default() {
+        let app = App::default();
+        assert_eq!(app.flight_type, Flight::OneWay);
+        assert!(app.departure.is_some());
+        assert!(!app.departure_input.is_empty());
+        assert_eq!(app.departure_error, None);
+        assert!(app.return_date.is_some());
+        assert_eq!(app.return_date_input, "");
+        assert_eq!(app.return_date_error, None);
+    }
+
+    #[test]
+    fn test_app_new() {
+        let (app, task) = App::new();
+        assert_eq!(app.flight_type, Flight::OneWay);
+        assert!(app.departure.is_some());
+        // Task should be none
+        let _ = task;
+    }
+
+    #[test]
+    fn test_validate_date_valid() {
+        let result = App::validate_date("2025-12-25");
+        assert!(result.is_ok());
+        assert_eq!(
+            result.unwrap(),
+            NaiveDate::from_ymd_opt(2025, 12, 25).unwrap()
+        );
+    }
+
+    #[test]
+    fn test_validate_date_invalid_format() {
+        let result = App::validate_date("12/25/2025");
+        assert!(result.is_err());
+        assert_eq!(result.unwrap_err(), "Use YYYY-MM-DD");
+    }
+
+    #[test]
+    fn test_validate_date_invalid_date() {
+        let result = App::validate_date("2025-13-45");
+        assert!(result.is_err());
+        assert_eq!(result.unwrap_err(), "Use YYYY-MM-DD");
+    }
+
+    #[test]
+    fn test_validate_date_empty() {
+        let result = App::validate_date("");
+        assert!(result.is_err());
+        assert_eq!(result.unwrap_err(), "Use YYYY-MM-DD");
+    }
+
+    #[test]
+    fn test_validate_at_least_valid_equal() {
+        let date = NaiveDate::from_ymd_opt(2025, 12, 25).unwrap();
+        let compare = NaiveDate::from_ymd_opt(2025, 12, 25).unwrap();
+        let result = App::validate_at_least(date, compare);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_validate_at_least_valid_after() {
+        let date = NaiveDate::from_ymd_opt(2025, 12, 26).unwrap();
+        let compare = NaiveDate::from_ymd_opt(2025, 12, 25).unwrap();
+        let result = App::validate_at_least(date, compare);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_validate_at_least_invalid() {
+        let date = NaiveDate::from_ymd_opt(2025, 12, 24).unwrap();
+        let compare = NaiveDate::from_ymd_opt(2025, 12, 25).unwrap();
+        let result = App::validate_at_least(date, compare);
+        assert!(result.is_err());
+        assert_eq!(result.unwrap_err(), "Must be at least 2025-12-25");
+    }
+
+    #[test]
+    fn test_update_flight_selected() {
+        let mut app = App::default();
+        assert_eq!(app.flight_type, Flight::OneWay);
+
+        app.update(Message::FlightSelected(Flight::Return));
+        assert_eq!(app.flight_type, Flight::Return);
+
+        app.update(Message::FlightSelected(Flight::OneWay));
+        assert_eq!(app.flight_type, Flight::OneWay);
+    }
+
+    #[test]
+    fn test_update_departure_changed_valid() {
+        let mut app = App::default();
+        app.update(Message::DepartureChanged("2025-12-25".to_string()));
+
+        assert_eq!(app.departure_input, "2025-12-25");
+        assert!(app.departure.is_some());
+        assert_eq!(
+            app.departure.unwrap(),
+            NaiveDate::from_ymd_opt(2025, 12, 25).unwrap()
+        );
+        assert_eq!(app.departure_error, None);
+    }
+
+    #[test]
+    fn test_update_departure_changed_invalid_format() {
+        let mut app = App::default();
+        app.update(Message::DepartureChanged("invalid".to_string()));
+
+        assert_eq!(app.departure_input, "invalid");
+        assert!(app.departure.is_none());
+        assert_eq!(app.departure_error, Some("Use YYYY-MM-DD".to_string()));
+    }
+
+    #[test]
+    fn test_update_departure_changed_past_date() {
+        let mut app = App::default();
+        app.update(Message::DepartureChanged("2020-01-01".to_string()));
+
+        assert_eq!(app.departure_input, "2020-01-01");
+        assert!(app.departure.is_some());
+        assert!(app.departure_error.is_some());
+        assert!(
+            app.departure_error
+                .as_ref()
+                .unwrap()
+                .starts_with("Must be at least")
+        );
+    }
+
+    #[test]
+    fn test_update_return_date_changed_valid() {
+        let mut app = App::default();
+        app.update(Message::DepartureChanged("2025-12-20".to_string()));
+        app.update(Message::ReturnDateChanged("2025-12-25".to_string()));
+
+        assert_eq!(app.return_date_input, "2025-12-25");
+        assert!(app.return_date.is_some());
+        assert_eq!(
+            app.return_date.unwrap(),
+            NaiveDate::from_ymd_opt(2025, 12, 25).unwrap()
+        );
+        assert_eq!(app.return_date_error, None);
+    }
+
+    #[test]
+    fn test_update_return_date_changed_before_departure() {
+        let mut app = App::default();
+        app.update(Message::DepartureChanged("2025-12-25".to_string()));
+        app.update(Message::ReturnDateChanged("2025-12-20".to_string()));
+
+        assert_eq!(app.return_date_input, "2025-12-20");
+        assert!(app.return_date.is_some());
+        assert!(app.return_date_error.is_some());
+        assert_eq!(
+            app.return_date_error.as_ref().unwrap(),
+            "Must be at least 2025-12-25"
+        );
+    }
+
+    #[test]
+    fn test_update_return_date_changed_no_departure() {
+        let mut app = App::default();
+        app.departure = None;
+        app.update(Message::ReturnDateChanged("2025-12-25".to_string()));
+
+        assert_eq!(app.return_date_input, "2025-12-25");
+        assert!(app.return_date.is_some());
+        assert_eq!(
+            app.return_date_error,
+            Some("Please select a departure date first".to_string())
+        );
+    }
+
+    #[test]
+    fn test_update_return_date_changed_invalid_format() {
+        let mut app = App::default();
+        app.update(Message::DepartureChanged("2025-12-25".to_string()));
+        app.update(Message::ReturnDateChanged("invalid".to_string()));
+
+        assert_eq!(app.return_date_input, "invalid");
+        assert!(app.return_date.is_none());
+        assert_eq!(app.return_date_error, Some("Use YYYY-MM-DD".to_string()));
+    }
+
+    #[test]
+    fn test_update_book_flight_resets_form() {
+        let mut app = App::default();
+        app.flight_type = Flight::Return;
+        app.update(Message::DepartureChanged("2025-12-25".to_string()));
+        app.update(Message::ReturnDateChanged("2025-12-30".to_string()));
+
+        // Book flight should reset to default
+        app.update(Message::BookFlight);
+
+        assert_eq!(app.flight_type, Flight::OneWay);
+        assert_eq!(app.return_date_input, "");
+    }
+
+    #[test]
+    fn test_message_clone() {
+        let msg = Message::FlightSelected(Flight::OneWay);
+        let cloned = msg.clone();
+        // Just ensure we can clone messages
+        let _ = cloned;
+    }
+
+    #[test]
+    fn test_flight_debug() {
+        // Ensure Debug trait works
+        let flight = Flight::OneWay;
+        let debug_str = format!("{:?}", flight);
+        assert!(debug_str.contains("OneWay"));
+    }
+}
