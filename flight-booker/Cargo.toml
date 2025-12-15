@@ -5,6 +5,7 @@ edition = "2024"
 
 [dependencies]
 iced.workspace = true
+chrono = "0.4"
 
 [dev-dependencies]
 iced_test.workspace = true
