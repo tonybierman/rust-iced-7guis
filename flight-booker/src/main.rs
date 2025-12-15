@@ -1,5 +1,5 @@
 use iced::alignment::Vertical;
-use iced::widget::{button, column, container, row, text};
+use iced::widget::{button, column, container, row, text, text_input};
 use iced::{Element, Settings};
 use chrono::{Local, NaiveDate};
 
@@ -30,10 +30,10 @@ enum Message {
 
 struct App {
     departure: Option<NaiveDate>,
-    departure_input: Option<String>,
+    departure_input: String,
     departure_error: Option<String>,
     return_date: Option<NaiveDate>,
-    return_date_input: Option<String>,
+    return_date_input: String,
     return_date_error: Option<String>,
 }
 
@@ -41,10 +41,10 @@ impl Default for App {
     fn default() -> Self {
         Self {
             departure: Some(Local::now().date_naive()),
-            departure_input: None,
+            departure_input: "".to_string(),
             departure_error: None,
             return_date: Some(Local::now().date_naive()),
-            return_date_input: None,
+            return_date_input: "".to_string(),
             return_date_error: None,
         }
     }
@@ -66,8 +66,33 @@ impl App {
                 }
             },
             Message::DepartureChanged(v) => {
+                self.departure_input = v.clone();
+                match App::validate_date(&v) {
+                    Ok(date) => {
+                        self.departure = Some(date);
+                        self.departure_error = App::validate_at_least(date, Local::now().date_naive()).err();
+                    }
+                    Err(parse_error) => {
+                        self.departure = None;
+                        self.departure_error = Some(parse_error);
+                    }
+                }
             },
             Message::ReturnDateChanged(v) => {
+                self.return_date_input = v.clone();
+                match App::validate_date(&v) {
+                    Ok(date) => {
+                        self.return_date = Some(date);
+                        self.return_date_error = match self.departure {
+                            Some(departure_date) => App::validate_at_least(date, departure_date).err(),
+                            None => Some("Please select a departure date first".to_string()),
+                        };
+                    }
+                    Err(parse_error) => {
+                        self.return_date = None;
+                        self.return_date_error = Some(parse_error);
+                    }
+                }
             },
         }
     }
@@ -75,8 +100,22 @@ impl App {
     fn view(&self) -> Element<'_, Message> {
 
         container(column![
-            text("Flight Booking Application")
-                .size(24)
+            text_input("Departure", &self.departure_input)
+                .on_input(Message::DepartureChanged)
+                .width(160),
+            text(
+                self.departure_error
+                    .as_ref()
+                    .map_or("", |e| e.as_str())
+            ),
+            text_input("Return", &self.return_date_input)
+                .on_input(Message::ReturnDateChanged)
+                .width(160),
+            text(
+                self.return_date_error
+                    .as_ref()
+                    .map_or("", |e| e.as_str())
+            )
             ].padding(20))
             .center_x(iced::Length::Fill)
             .into()
@@ -84,16 +123,14 @@ impl App {
 
     fn validate_date(input: &str) -> Result<NaiveDate, String> {
         NaiveDate::parse_from_str(input, "%Y-%m-%d")
-            .map_err(|_| "Invalid date format. Use YYYY-MM-DD".to_string())
+            .map_err(|_| "Use YYYY-MM-DD".to_string())
     }
 
-    fn validate_today_or_future_date(date: NaiveDate) -> Result<(), String> {
-        let today = Local::now().date_naive();
-        
-        if date >= today {
+    fn validate_at_least(date: NaiveDate, compare_date: NaiveDate) -> Result<(), String> {
+        if date >= compare_date {
             Ok(())
         } else {
-            Err("Date must be in the future".to_string())
+            Err(format!("Must be at least {}", compare_date))
         }
     }
 }
