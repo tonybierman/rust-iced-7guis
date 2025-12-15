@@ -1,5 +1,5 @@
 use iced::alignment::Vertical;
-use iced::widget::{button, column, container, row, text, text_input};
+use iced::widget::{button, column, container, pick_list, row, text, text_input};
 use iced::{Element, Settings};
 use chrono::{Local, NaiveDate};
 
@@ -15,10 +15,19 @@ pub fn main() -> iced::Result {
         .run()
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum Flight {
     OneWay,
     Return,
+}
+
+impl std::fmt::Display for Flight {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Flight::OneWay => write!(f, "One-way flight"),
+            Flight::Return => write!(f, "Return flight"),
+        }
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -29,6 +38,7 @@ enum Message {
 }
 
 struct App {
+    flight_type: Flight,
     departure: Option<NaiveDate>,
     departure_input: String,
     departure_error: Option<String>,
@@ -40,6 +50,7 @@ struct App {
 impl Default for App {
     fn default() -> Self {
         Self {
+            flight_type: Flight::OneWay,
             departure: Some(Local::now().date_naive()),
             departure_input: "".to_string(),
             departure_error: None,
@@ -58,12 +69,7 @@ impl App {
     fn update(&mut self, message: Message) {
         match message {
             Message::FlightSelected(f) => {
-                match f {
-                    Flight::OneWay => {
-                    },
-                    Flight::Return => {
-                    },
-                }
+                self.flight_type = f;
             },
             Message::DepartureChanged(v) => {
                 self.departure_input = v.clone();
@@ -98,8 +104,27 @@ impl App {
     }
 
     fn view(&self) -> Element<'_, Message> {
+        let return_enabled = self.flight_type == Flight::Return 
+            && !self.departure_input.is_empty()
+            && self.departure.is_some() 
+            && self.departure_error.is_none();
+
+        let return_input = if return_enabled {
+            text_input("Return", &self.return_date_input)
+                .on_input(Message::ReturnDateChanged)
+                .width(160)
+        } else {
+            text_input("Return", &self.return_date_input)
+                .width(160)
+        };
 
         container(column![
+            pick_list(
+                &[Flight::OneWay, Flight::Return][..],
+                Some(self.flight_type),
+                Message::FlightSelected
+            )
+            .width(160),
             text_input("Departure", &self.departure_input)
                 .on_input(Message::DepartureChanged)
                 .width(160),
@@ -108,9 +133,7 @@ impl App {
                     .as_ref()
                     .map_or("", |e| e.as_str())
             ),
-            text_input("Return", &self.return_date_input)
-                .on_input(Message::ReturnDateChanged)
-                .width(160),
+            return_input,
             text(
                 self.return_date_error
                     .as_ref()
