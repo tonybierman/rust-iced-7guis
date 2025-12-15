@@ -35,6 +35,7 @@ enum Message {
     FlightSelected(Flight),
     DepartureChanged(String),
     ReturnDateChanged(String),
+    BookFlight,
 }
 
 struct App {
@@ -100,6 +101,10 @@ impl App {
                     }
                 }
             },
+            Message::BookFlight => {
+                // Clear the form
+                *self = App::default();
+            }
         }
     }
 
@@ -109,12 +114,38 @@ impl App {
             && self.departure.is_some() 
             && self.departure_error.is_none();
 
+        // Check if form is valid
+        let is_form_valid = match self.flight_type {
+            Flight::OneWay => {
+                !self.departure_input.is_empty()
+                    && self.departure.is_some()
+                    && self.departure_error.is_none()
+            }
+            Flight::Return => {
+                !self.departure_input.is_empty()
+                    && self.departure.is_some()
+                    && self.departure_error.is_none()
+                    && !self.return_date_input.is_empty()
+                    && self.return_date.is_some()
+                    && self.return_date_error.is_none()
+            }
+        };
+
         let return_input = if return_enabled {
             text_input("Return", &self.return_date_input)
                 .on_input(Message::ReturnDateChanged)
                 .width(160)
         } else {
             text_input("Return", &self.return_date_input)
+                .width(160)
+        };
+
+        let book_button = if is_form_valid {
+            button("Book it!")
+                .on_press(Message::BookFlight)
+                .width(160)
+        } else {
+            button("Book it!")
                 .width(160)
         };
 
@@ -138,7 +169,8 @@ impl App {
                 self.return_date_error
                     .as_ref()
                     .map_or("", |e| e.as_str())
-            )
+            ),
+            book_button
             ].padding(20))
             .center_x(iced::Length::Fill)
             .into()
