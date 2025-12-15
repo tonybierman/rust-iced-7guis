@@ -1,7 +1,6 @@
-use iced::alignment::Vertical;
-use iced::widget::{button, column, container, pick_list, row, text, text_input};
-use iced::{Element, Settings};
 use chrono::{Local, NaiveDate};
+use iced::widget::{button, column, container, pick_list, text, text_input};
+use iced::{Element, Settings};
 
 pub fn main() -> iced::Result {
     iced::application(App::new, App::update, App::view)
@@ -53,7 +52,7 @@ impl Default for App {
         Self {
             flight_type: Flight::OneWay,
             departure: Some(Local::now().date_naive()),
-            departure_input: "".to_string(),
+            departure_input: Local::now().date_naive().format("%Y-%m-%d").to_string(),
             departure_error: None,
             return_date: Some(Local::now().date_naive()),
             return_date_input: "".to_string(),
@@ -71,27 +70,30 @@ impl App {
         match message {
             Message::FlightSelected(f) => {
                 self.flight_type = f;
-            },
+            }
             Message::DepartureChanged(v) => {
                 self.departure_input = v.clone();
                 match App::validate_date(&v) {
                     Ok(date) => {
                         self.departure = Some(date);
-                        self.departure_error = App::validate_at_least(date, Local::now().date_naive()).err();
+                        self.departure_error =
+                            App::validate_at_least(date, Local::now().date_naive()).err();
                     }
                     Err(parse_error) => {
                         self.departure = None;
                         self.departure_error = Some(parse_error);
                     }
                 }
-            },
+            }
             Message::ReturnDateChanged(v) => {
                 self.return_date_input = v.clone();
                 match App::validate_date(&v) {
                     Ok(date) => {
                         self.return_date = Some(date);
                         self.return_date_error = match self.departure {
-                            Some(departure_date) => App::validate_at_least(date, departure_date).err(),
+                            Some(departure_date) => {
+                                App::validate_at_least(date, departure_date).err()
+                            }
                             None => Some("Please select a departure date first".to_string()),
                         };
                     }
@@ -100,7 +102,7 @@ impl App {
                         self.return_date_error = Some(parse_error);
                     }
                 }
-            },
+            }
             Message::BookFlight => {
                 // Clear the form
                 *self = App::default();
@@ -109,9 +111,9 @@ impl App {
     }
 
     fn view(&self) -> Element<'_, Message> {
-        let return_enabled = self.flight_type == Flight::Return 
+        let return_enabled = self.flight_type == Flight::Return
             && !self.departure_input.is_empty()
-            && self.departure.is_some() 
+            && self.departure.is_some()
             && self.departure_error.is_none();
 
         // Check if form is valid
@@ -136,49 +138,42 @@ impl App {
                 .on_input(Message::ReturnDateChanged)
                 .width(160)
         } else {
-            text_input("Return", &self.return_date_input)
-                .width(160)
+            text_input("Return", &self.return_date_input).width(160)
         };
 
         let book_button = if is_form_valid {
-            button("Book it!")
-                .on_press(Message::BookFlight)
-                .width(160)
+            button("Book it!").on_press(Message::BookFlight).width(160)
         } else {
-            button("Book it!")
-                .width(160)
+            button("Book it!").width(160)
         };
 
-        container(column![
-            pick_list(
-                &[Flight::OneWay, Flight::Return][..],
-                Some(self.flight_type),
-                Message::FlightSelected
-            )
-            .width(160),
-            text_input("Departure", &self.departure_input)
-                .on_input(Message::DepartureChanged)
-                .width(160),
-            text(
-                self.departure_error
-                    .as_ref()
-                    .map_or("", |e| e.as_str())
-            ),
-            return_input,
-            text(
-                self.return_date_error
-                    .as_ref()
-                    .map_or("", |e| e.as_str())
-            ),
-            book_button
-            ].padding(20))
-            .center_x(iced::Length::Fill)
-            .into()
+        container(
+            column![
+                container(
+                    pick_list(
+                        &[Flight::OneWay, Flight::Return][..],
+                        Some(self.flight_type),
+                        Message::FlightSelected
+                    )
+                    .width(160)
+                )
+                .padding(iced::padding::bottom(20)),
+                text_input("Departure", &self.departure_input)
+                    .on_input(Message::DepartureChanged)
+                    .width(160),
+                text(self.departure_error.as_ref().map_or("", |e| e.as_str())),
+                return_input,
+                text(self.return_date_error.as_ref().map_or("", |e| e.as_str())),
+                book_button
+            ]
+            .padding(20),
+        )
+        .center_x(iced::Length::Fill)
+        .into()
     }
 
     fn validate_date(input: &str) -> Result<NaiveDate, String> {
-        NaiveDate::parse_from_str(input, "%Y-%m-%d")
-            .map_err(|_| "Use YYYY-MM-DD".to_string())
+        NaiveDate::parse_from_str(input, "%Y-%m-%d").map_err(|_| "Use YYYY-MM-DD".to_string())
     }
 
     fn validate_at_least(date: NaiveDate, compare_date: NaiveDate) -> Result<(), String> {
