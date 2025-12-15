@@ -3,8 +3,9 @@ use iced::widget::{button, column, container, row, text};
 use iced::{Element, Settings};
 
 pub fn main() -> iced::Result {
-    iced::application(Counter::new, Counter::update, Counter::view)
+    iced::application(App::new, App::update, App::view)
         .settings(Settings {
+            antialiasing: true,
             ..Default::default()
         })
         .window_size((200, 80))
@@ -19,13 +20,13 @@ enum Message {
 }
 
 #[derive(Default)]
-struct Counter {
+struct App {
     value: i64,
 }
 
-impl Counter {
+impl App {
     fn new() -> (Self, iced::Task<Message>) {
-        (Counter { value: 0 }, iced::Task::none())
+        (App { value: 0 }, iced::Task::none())
     }
 
     fn update(&mut self, message: Message) {
@@ -58,7 +59,7 @@ mod tests {
 
     #[test]
     fn it_counts() -> Result<(), Error> {
-        let mut counter = Counter { value: 0 };
+        let mut counter = App { value: 0 };
         let mut ui = simulator(counter.view());
 
         let _ = ui.click("Increment")?;
@@ -79,27 +80,27 @@ mod tests {
     #[test]
     #[allow(unused_variables)]
     fn test_counter_new() {
-        let (counter, task) = Counter::new();
+        let (counter, task) = App::new();
         assert_eq!(counter.value, 0);
         // Verify task is none (though we can't directly test Task internals easily)
     }
 
     #[test]
     fn test_counter_default() {
-        let counter = Counter::default();
+        let counter = App::default();
         assert_eq!(counter.value, 0);
     }
 
     #[test]
     fn test_single_increment() {
-        let mut counter = Counter { value: 0 };
+        let mut counter = App { value: 0 };
         counter.update(Message::Increment);
         assert_eq!(counter.value, 1);
     }
 
     #[test]
     fn test_multiple_increments() {
-        let mut counter = Counter { value: 0 };
+        let mut counter = App { value: 0 };
         for _ in 0..10 {
             counter.update(Message::Increment);
         }
@@ -108,7 +109,7 @@ mod tests {
 
     #[test]
     fn test_increment_from_non_zero() {
-        let mut counter = Counter { value: 42 };
+        let mut counter = App { value: 42 };
         counter.update(Message::Increment);
         assert_eq!(counter.value, 43);
     }

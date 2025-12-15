@@ -3,8 +3,9 @@ use iced::widget::{column, container, row, text, text_input};
 use iced::{Element, Settings};
 
 pub fn main() -> iced::Result {
-    iced::application(Calculator::new, Calculator::update, Calculator::view)
+    iced::application(App::new, App::update, App::view)
         .settings(Settings {
+            antialiasing: true,
             ..Default::default()
         })
         .window_size((400, 120))
@@ -20,17 +21,17 @@ enum Message {
 }
 
 #[derive(Debug, Clone, Default)]
-pub struct Calculator {
+pub struct App {
     celsius: Option<f32>,
     fahrenheit: Option<f32>,
     celsius_input: String,
     fahrenheit_input: String,
 }
 
-impl Calculator {
+impl App {
     fn new() -> (Self, iced::Task<Message>) {
         (
-            Calculator {
+            App {
                 celsius: Some(0.0),
                 fahrenheit: Some(32.0),
                 celsius_input: "0".to_string(),
@@ -88,9 +89,9 @@ mod tests {
 
     #[test]
     fn it_calcs() -> Result<(), Error> {
-        let calc = Calculator {
+        let calc = App {
             fahrenheit_input: "32".to_string(),
-            ..Calculator::default()
+            ..App::default()
         };
 
         // TODO: Add more interaction tests here
@@ -111,7 +112,7 @@ mod tests {
     #[test]
     #[allow(unused_variables)]
     fn test_calculator_new() {
-        let (calculator, task) = Calculator::new();
+        let (calculator, task) = App::new();
         assert_eq!(calculator.celsius, Some(0.0));
         assert_eq!(calculator.fahrenheit, Some(32.0));
         // Verify task is none (though we can't directly test Task internals easily)
@@ -119,9 +120,9 @@ mod tests {
 
     #[test]
     fn test_from_celsius() {
-        let mut calculator = Calculator {
+        let mut calculator = App {
             celsius_input: "20".to_string(),
-            ..Calculator::default()
+            ..App::default()
         };
         calculator.update(Message::CelsiusChanged("20".to_string()));
         assert_eq!(calculator.fahrenheit, Some(68.0));
@@ -129,9 +130,9 @@ mod tests {
 
     #[test]
     fn test_from_farenheit() {
-        let mut calculator = Calculator {
+        let mut calculator = App {
             fahrenheit_input: "86".to_string(),
-            ..Calculator::default()
+            ..App::default()
         };
         calculator.update(Message::FahrenheitChanged("86".to_string()));
         assert_eq!(calculator.celsius, Some(30.000002));
