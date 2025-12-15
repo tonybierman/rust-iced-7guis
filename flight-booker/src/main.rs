@@ -364,8 +364,10 @@ mod tests {
 
     #[test]
     fn test_update_return_date_changed_no_departure() {
-        let mut app = App::default();
-        app.departure = None;
+        let mut app = App {
+            departure: None,
+            ..Default::default()
+        };
         app.update(Message::ReturnDateChanged("2025-12-25".to_string()));
 
         assert_eq!(app.return_date_input, "2025-12-25");
@@ -389,8 +391,10 @@ mod tests {
 
     #[test]
     fn test_update_book_flight_resets_form() {
-        let mut app = App::default();
-        app.flight_type = Flight::Return;
+        let mut app = App {
+            flight_type: Flight::Return,
+            ..Default::default()
+        };
         app.update(Message::DepartureChanged("2025-12-25".to_string()));
         app.update(Message::ReturnDateChanged("2025-12-30".to_string()));
 

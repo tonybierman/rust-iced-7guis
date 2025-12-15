@@ -56,6 +56,12 @@ To build all GUIs:
 cargo build --release
 ```
 
+### Linting
+
+```bash
+cargo clippy --all-targets --all-features -- -D warnings
+```
+
 ## Testing
 
 ```bash
