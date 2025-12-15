@@ -16,7 +16,15 @@ Implementation of the [7GUIs benchmark](https://7guis.github.io/7guis/) using Ru
 
 ## Status
 
-[![CI](https://github.com/tonybierman/rust-iced-7guis/actions/workflows/CI.yml/badge.svg)](https://github.com/tonybierman/rust-iced-7guis/actions/workflows/CI.yml)
+| Binary | Status |
+|--------|--------|
+| Counter | [![Counter](https://github.com/tonybierman/rust-iced-7guis/actions/workflows/CI.yml/badge.svg?job=counter)](https://github.com/tonybierman/rust-iced-7guis/actions/workflows/CI.yml) |
+| Temperature Converter | [![Temperature Converter](https://github.com/tonybierman/rust-iced-7guis/actions/workflows/CI.yml/badge.svg?job=temperature-converter)](https://github.com/tonybierman/rust-iced-7guis/actions/workflows/CI.yml) |
+| Flight Booker | [![Flight Booker](https://github.com/tonybierman/rust-iced-7guis/actions/workflows/CI.yml/badge.svg?job=flight-booker)](https://github.com/tonybierman/rust-iced-7guis/actions/workflows/CI.yml) |
+| Timer | [![Timer](https://github.com/tonybierman/rust-iced-7guis/actions/workflows/CI.yml/badge.svg?job=timer)](https://github.com/tonybierman/rust-iced-7guis/actions/workflows/CI.yml) |
+| CRUD | [![CRUD](https://github.com/tonybierman/rust-iced-7guis/actions/workflows/CI.yml/badge.svg?job=crud)](https://github.com/tonybierman/rust-iced-7guis/actions/workflows/CI.yml) |
+| Circle Drawer | [![Circle Drawer](https://github.com/tonybierman/rust-iced-7guis/actions/workflows/CI.yml/badge.svg?job=circle-drawer)](https://github.com/tonybierman/rust-iced-7guis/actions/workflows/CI.yml) |
+| Cells | [![Cells](https://github.com/tonybierman/rust-iced-7guis/actions/workflows/CI.yml/badge.svg?job=cells)](https://github.com/tonybierman/rust-iced-7guis/actions/workflows/CI.yml) |
 
 ## Structure
 
