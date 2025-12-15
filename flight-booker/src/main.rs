@@ -1,7 +1,7 @@
 use iced::alignment::Vertical;
 use iced::widget::{button, column, container, row, text};
 use iced::{Element, Settings};
-use chrono::{DateTime, Local};
+use chrono::{Local, NaiveDate};
 
 pub fn main() -> iced::Result {
     iced::application(App::new, App::update, App::view)
@@ -24,19 +24,35 @@ enum Flight {
 #[derive(Debug, Clone)]
 enum Message {
     FlightSelected(Flight),
-    DepartureChanged,
-    ReturnDateChanged,
+    DepartureChanged(String),
+    ReturnDateChanged(String),
 }
 
-#[derive(Default)]
 struct App {
-    departure: Option<DateTime<Local>>,
-    return_date: Option<DateTime<Local>>,
+    departure: Option<NaiveDate>,
+    departure_input: Option<String>,
+    departure_error: Option<String>,
+    return_date: Option<NaiveDate>,
+    return_date_input: Option<String>,
+    return_date_error: Option<String>,
+}
+
+impl Default for App {
+    fn default() -> Self {
+        Self {
+            departure: Some(Local::now().date_naive()),
+            departure_input: None,
+            departure_error: None,
+            return_date: Some(Local::now().date_naive()),
+            return_date_input: None,
+            return_date_error: None,
+        }
+    }
 }
 
 impl App {
     fn new() -> (Self, iced::Task<Message>) {
-        (App { departure: Some(Local::now()), return_date: Some(Local::now()) }, iced::Task::none())
+        (App::default(), iced::Task::none())
     }
 
     fn update(&mut self, message: Message) {
@@ -49,9 +65,9 @@ impl App {
                     },
                 }
             },
-            Message::DepartureChanged => {
+            Message::DepartureChanged(v) => {
             },
-            Message::ReturnDateChanged => {
+            Message::ReturnDateChanged(v) => {
             },
         }
     }
@@ -64,5 +80,20 @@ impl App {
             ].padding(20))
             .center_x(iced::Length::Fill)
             .into()
+    }
+
+    fn validate_date(input: &str) -> Result<NaiveDate, String> {
+        NaiveDate::parse_from_str(input, "%Y-%m-%d")
+            .map_err(|_| "Invalid date format. Use YYYY-MM-DD".to_string())
+    }
+
+    fn validate_today_or_future_date(date: NaiveDate) -> Result<(), String> {
+        let today = Local::now().date_naive();
+        
+        if date >= today {
+            Ok(())
+        } else {
+            Err("Date must be in the future".to_string())
+        }
     }
 }
