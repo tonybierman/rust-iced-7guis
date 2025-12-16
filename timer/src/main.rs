@@ -1,4 +1,4 @@
-use iced::alignment::Horizontal;
+use iced::alignment::{Horizontal, Vertical};
 use iced::time::{self, milliseconds};
 use iced::widget::{ProgressBar, Slider, button, column, container, row, text};
 use iced::{Element, Settings, Subscription};
@@ -10,7 +10,7 @@ pub fn main() -> iced::Result {
             antialiasing: true,
             ..Default::default()
         })
-        .window_size((360, 360))
+        .window_size((300, 220))
         .centered()
         .resizable(false)
         .run()
@@ -64,12 +64,11 @@ impl App {
                 row![
                     text("Elapsed Time:").size(12).align_x(Horizontal::Left),
                     ProgressBar::new(0.0..=self.duration, self.elapsed)
-                ],
-                row![
-                    text(format!("{:.2}", self.elapsed))
-                        .size(24)
-                        .align_x(Horizontal::Center)
-                ],
+                ]
+                .spacing(10)
+                .align_y(Vertical::Center),
+                container(text(format!("{:.2}", self.elapsed)).size(48))
+                    .center_x(iced::Length::Fill),
                 row![
                     text("Duration:").size(12).align_x(Horizontal::Left),
                     Slider::new(
@@ -77,8 +76,13 @@ impl App {
                         self.duration,
                         Message::DurationChanged
                     )
-                ],
-                row![button("Reset").on_press(Message::Reset)],
+                ]
+                .padding(iced::padding::bottom(20))
+                .spacing(10)
+                .align_y(Vertical::Center),
+                container(button("Reset").on_press(Message::Reset))
+                    .align_y(Vertical::Center)
+                    .center_x(iced::Length::Fill),
             ]
             .padding(20),
         )
