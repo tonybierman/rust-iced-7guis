@@ -14,7 +14,10 @@ Implementation of the [7GUIs benchmark](https://7guis.github.io/7guis/) using Ru
 6. [**Circle Drawer**](https://github.com/tonybierman/rust-iced-7guis/tree/main/circle-drawer) - Undo/Redo functionality
 7. [**Cells**](https://github.com/tonybierman/rust-iced-7guis/tree/main/cells) - Complex state management (spreadsheet)
 
-## Status
+## Status 
+
+[![CI](https://github.com/tonybierman/rust-iced-7guis/actions/workflows/CI.yml/badge.svg)](https://github.com/tonybierman/rust-iced-7guis/actions/workflows/CI.yml)
+
 
 | Binary | Implemented | 
 |--------|-------------|
