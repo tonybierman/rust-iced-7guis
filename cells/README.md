@@ -4,6 +4,8 @@
 
 A simple but usable Iced GUI spreadsheet application that demonstrates change propagation and widget customization in a GUI context.
 
+![Screenshot of Cells - 7GUIs Benchmark](screenshot.png)
+
 ## Requirements
 
 ### Grid Specification
