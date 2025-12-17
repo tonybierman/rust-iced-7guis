@@ -245,7 +245,8 @@ impl CircleDrawer {
                 left_x
             } else {
                 // Place above or below the circle if sides don't work
-                (circle_center.x - DIALOG_WIDTH / 2.0).clamp(10.0, WINDOW_WIDTH - DIALOG_WIDTH - 10.0)
+                (circle_center.x - DIALOG_WIDTH / 2.0)
+                    .clamp(10.0, WINDOW_WIDTH - DIALOG_WIDTH - 10.0)
             }
         };
 
@@ -299,18 +300,29 @@ impl CircleDrawer {
                 self.calculate_dialog_position(circle.center, circle.diameter)
             } else {
                 // Fallback to center if no circle selected
-                ((WINDOW_WIDTH - DIALOG_WIDTH) / 2.0, (WINDOW_HEIGHT - DIALOG_HEIGHT) / 2.0)
+                (
+                    (WINDOW_WIDTH - DIALOG_WIDTH) / 2.0,
+                    (WINDOW_HEIGHT - DIALOG_HEIGHT) / 2.0,
+                )
             };
 
             let dialog_content = column![
-                text("Adjust diameter:").size(16),
+                text("Adjust diameter:")
+                    .size(16)
+                    .width(Length::Fill)
+                    .color(Color::BLACK)
+                    .align_x(Horizontal::Center),
                 slider(
                     MIN_DIAMETER..=MAX_DIAMETER,
                     self.temp_diameter,
                     Message::DiameterChanged
                 )
                 .width(Length::Fill),
-                text(format!("Diameter: {:.1}", self.temp_diameter)).size(14),
+                text(format!("Diameter: {:.1}", self.temp_diameter))
+                    .size(14)
+                    .width(Length::Fill)
+                    .color(Color::BLACK)
+                    .align_x(Horizontal::Center),
                 container(button("Close").on_press(Message::CloseDialog).padding(10))
                     .width(Length::Fill)
                     .align_x(Horizontal::Center)
@@ -345,10 +357,7 @@ impl CircleDrawer {
                 .height(Length::Fill);
 
             // Use Stack to overlay the dialog without affecting layout
-            Stack::new()
-                .push(content)
-                .push(positioned_dialog)
-                .into()
+            Stack::new().push(content).push(positioned_dialog).into()
         } else {
             content.into()
         }
