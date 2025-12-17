@@ -1,4 +1,4 @@
-# Timer
+# Timer- 7GUIs Challenge
 
 A GUI application that demonstrates concurrency, competing user/signal interactions, and UI responsiveness.
 
