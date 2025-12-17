@@ -1,5 +1,7 @@
 # Temperature Converter - 7GUIs Benchmark
 
+Rust with Iced
+
 ## Overview
 A Iced GUI app presenting a temperature conversion interface that demonstrates bidirectional data flow between Celsius and Fahrenheit text fields.
 

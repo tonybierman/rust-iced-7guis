@@ -1,5 +1,7 @@
 # Cells - 7GUIs Benchmark
 
+Rust with Iced
+
 ## Overview
 
 A simple but usable Iced GUI spreadsheet application that demonstrates change propagation and widget customization in a GUI context.

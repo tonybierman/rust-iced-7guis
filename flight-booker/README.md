@@ -1,5 +1,7 @@
 # Flight Booker - 7GUIs Benchmark
 
+Rust with Iced
+
 ## Overview
 An Iced GUI app presenting a flight booking interface that demonstrates constraint modeling between and within widgets.
 

@@ -1,5 +1,7 @@
 # Counter - 7GUIs Benchmark
 
+Rust with Iced
+
 ## Overview
 An Iced GUI app demonstrating simple state management
 

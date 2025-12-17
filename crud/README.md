@@ -1,5 +1,7 @@
 # CRUD - 7GUIs Benchmark
 
+Rust with Iced
+
 ## Overview
 A Iced GUI app demonstrating Create, Read, Update, and Delete operations on a list of names.
 

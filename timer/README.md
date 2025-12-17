@@ -1,5 +1,7 @@
 # Timer- 7GUIs Benchmark
 
+Rust with Iced
+
 A Iced GUI app that demonstrates concurrency, competing user/signal interactions, and UI responsiveness.
 
 ![Screenshot of Timer - 7GUIs Benchmark](screenshot.png)
