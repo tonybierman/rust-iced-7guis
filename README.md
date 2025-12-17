@@ -6,13 +6,13 @@ Implementation of the [7GUIs benchmark](https://7guis.github.io/7guis/) using Ru
 
 7GUIs is a benchmark for comparing GUI frameworks. It defines seven tasks that represent common GUI programming challenges:
 
-1. **Counter** - Simple state management
-2. **Temperature Converter** - Bidirectional data flow
-3. **Flight Booker** - Constraints and validation
-4. **Timer** - Concurrency and timed events
-5. **CRUD** - Create, Read, Update, Delete operations
-6. **Circle Drawer** - Undo/Redo functionality
-7. **Cells** - Complex state management (spreadsheet)
+1. [**Counter**](https://github.com/tonybierman/rust-iced-7guis/tree/main/counter) - Simple state management
+2. [**Temperature Converter**](https://github.com/tonybierman/rust-iced-7guis/tree/main/temperature-converter) - Bidirectional data flow
+3. [**Flight Booker**](https://github.com/tonybierman/rust-iced-7guis/tree/main/flight-booker) - Constraints and validation
+4. [**Timer**](https://github.com/tonybierman/rust-iced-7guis/tree/main/timer) - Concurrency and timed events
+5. [**CRUD**](https://github.com/tonybierman/rust-iced-7guis/tree/main/crud) - Create, Read, Update, Delete operations
+6. [**Circle Drawer**](https://github.com/tonybierman/rust-iced-7guis/tree/main/circle-drawer) - Undo/Redo functionality
+7. [**Cells**](https://github.com/tonybierman/rust-iced-7guis/tree/main/cells) - Complex state management (spreadsheet)
 
 ## Status
 
