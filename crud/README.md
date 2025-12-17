@@ -1,7 +1,9 @@
-# CRUD - 7GUIs Challenge
+# CRUD - 7GUIs Benchmark
 
 ## Overview
-A graphical business application demonstrating Create, Read, Update, and Delete operations on a list of names.
+A Iced GUI app demonstrating Create, Read, Update, and Delete operations on a list of names.
+
+![Screenshot of CRUD - 7GUIs Benchmark](screenshot.png)
 
 ## Core Challenges
 - Separating domain and presentation logic

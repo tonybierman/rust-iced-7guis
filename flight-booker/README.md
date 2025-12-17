@@ -1,7 +1,9 @@
-# Flight Booker
+# Flight Booker - 7GUIs Benchmark
 
-## Challenge
-Build a flight booking interface that demonstrates constraint modeling between and within widgets.
+## Overview
+An Iced GUI app presenting a flight booking interface that demonstrates constraint modeling between and within widgets.
+
+![Screenshot of Flight Booker - 7GUIs Benchmark](screenshot.png)
 
 ## Components
 - **Combobox (C)**: Options "one-way flight" and "return flight"

@@ -1,7 +1,9 @@
-# Temperature Converter
+# Temperature Converter - 7GUIs Benchmark
 
 ## Overview
-Build a temperature conversion application with bidirectional data flow between Celsius and Fahrenheit text fields.
+A Iced GUI app presenting a temperature conversion interface that demonstrates bidirectional data flow between Celsius and Fahrenheit text fields.
+
+![Screenshot of Temperature Converter - 7GUIs Benchmark](screenshot.png)
 
 ## Requirements
 

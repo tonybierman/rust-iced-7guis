@@ -1,6 +1,8 @@
-# Timer- 7GUIs Challenge
+# Timer- 7GUIs Benchmark
 
-A GUI application that demonstrates concurrency, competing user/signal interactions, and UI responsiveness.
+A Iced GUI app that demonstrates concurrency, competing user/signal interactions, and UI responsiveness.
+
+![Screenshot of Timer - 7GUIs Benchmark](screenshot.png)
 
 ## Requirements
 
