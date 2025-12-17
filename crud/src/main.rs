@@ -250,6 +250,31 @@ impl App {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use iced_test::{Error, simulator};
+
+    #[test]
+    fn ui_create_user() -> Result<(), Error> {
+        let mut crud = App {
+            first_name_input: "Test".to_string(),
+            last_name_input: "User".to_string(),
+            ..App::default()
+        };
+
+        {
+            let mut ui = simulator(crud.view());
+            let _ = ui.click("Create")?;
+        } // ui is dropped here
+
+        crud.update(Message::CreatePressed);
+
+        assert!(
+            crud.people
+                .iter()
+                .any(|p| p.first_name == "Test" && p.last_name == "User")
+        );
+
+        Ok(())
+    }
 
     fn create_test_app() -> App {
         App::default()
