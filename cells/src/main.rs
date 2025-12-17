@@ -60,7 +60,8 @@ impl Cells {
             Message::CellClicked(row, col) => {
                 // If clicking a different cell while editing, finish current edit
                 if let Some((editing_row, editing_col)) = self.editing_cell
-                    && (editing_row, editing_col) != (row, col) {
+                    && (editing_row, editing_col) != (row, col)
+                {
                     self.update_cell(editing_row, editing_col, self.editing_formula.clone());
                     self.editing_cell = None;
                     self.editing_formula.clear();
@@ -312,10 +313,7 @@ impl Cells {
             if !deps.is_empty() {
                 self.dependencies.insert((row, col), deps.clone());
                 for dep in deps {
-                    self.dependents
-                        .entry(dep)
-                        .or_default()
-                        .insert((row, col));
+                    self.dependents.entry(dep).or_default().insert((row, col));
                 }
             }
 

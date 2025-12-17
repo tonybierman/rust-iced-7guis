@@ -27,7 +27,7 @@ Implementation of the [7GUIs benchmark](https://7guis.github.io/7guis/) using Ru
 | Timer |✅|
 | CRUD |✅|
 | Circle Drawer |✅|
-| Cells |❌|
+| Cells |✅|
 
 ## Structure
 
