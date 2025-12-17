@@ -16,15 +16,15 @@ Implementation of the [7GUIs benchmark](https://7guis.github.io/7guis/) using Ru
 
 ## Status
 
-| Binary | Implemented | Build Status |
-|--------|-------------|--------------|
-| Counter |✅| [![Counter](https://github.com/tonybierman/rust-iced-7guis/actions/workflows/counter.yml/badge.svg)](https://github.com/tonybierman/rust-iced-7guis/actions/workflows/counter.yml) |
-| Temperature Converter |✅|[![Temperature Converter](https://github.com/tonybierman/rust-iced-7guis/actions/workflows/temperature-converter.yml/badge.svg)](https://github.com/tonybierman/rust-iced-7guis/actions/workflows/temperature-converter.yml) |
-| Flight Booker |✅| [![Flight Booker](https://github.com/tonybierman/rust-iced-7guis/actions/workflows/flight-booker.yml/badge.svg)](https://github.com/tonybierman/rust-iced-7guis/actions/workflows/flight-booker.yml) |
-| Timer |✅| [![Timer](https://github.com/tonybierman/rust-iced-7guis/actions/workflows/timer.yml/badge.svg)](https://github.com/tonybierman/rust-iced-7guis/actions/workflows/timer.yml) |
-| CRUD |✅| [![CRUD](https://github.com/tonybierman/rust-iced-7guis/actions/workflows/crud.yml/badge.svg)](https://github.com/tonybierman/rust-iced-7guis/actions/workflows/crud.yml) |
-| Circle Drawer |❌| [![Circle Drawer](https://github.com/tonybierman/rust-iced-7guis/actions/workflows/circle-drawer.yml/badge.svg)](https://github.com/tonybierman/rust-iced-7guis/actions/workflows/circle-drawer.yml) |
-| Cells |❌| [![Cells](https://github.com/tonybierman/rust-iced-7guis/actions/workflows/cells.yml/badge.svg)](https://github.com/tonybierman/rust-iced-7guis/actions/workflows/cells.yml) |
+| Binary | Implemented | 
+|--------|-------------|
+| Counter |✅|
+| Temperature Converter |✅|
+| Flight Booker |✅|
+| Timer |✅|
+| CRUD |✅|
+| Circle Drawer |✅|
+| Cells |❌|
 
 ## Structure
 
