@@ -1,10 +1,16 @@
+use iced::alignment::Horizontal;
 use iced::mouse;
-use iced::widget::{Canvas, button, canvas, column, container, row, slider, text};
+use iced::widget::{Canvas, Stack, button, canvas, column, container, row, slider, text};
 use iced::{Border, Color, Element, Event, Length, Point, Rectangle, Settings, Theme};
 
 const INITIAL_DIAMETER: f32 = 40.0;
 const MIN_DIAMETER: f32 = 10.0;
 const MAX_DIAMETER: f32 = 100.0;
+const DIALOG_WIDTH: f32 = 400.0;
+const DIALOG_HEIGHT: f32 = 250.0;
+const WINDOW_WIDTH: f32 = 800.0;
+const WINDOW_HEIGHT: f32 = 600.0;
+const CONTROLS_HEIGHT: f32 = 50.0; // Approximate height of controls area
 
 pub fn main() -> iced::Result {
     iced::application(CircleDrawer::new, CircleDrawer::update, CircleDrawer::view)
@@ -12,7 +18,7 @@ pub fn main() -> iced::Result {
             antialiasing: true,
             ..Default::default()
         })
-        .window_size((800, 600))
+        .window_size((WINDOW_WIDTH, WINDOW_HEIGHT))
         .run()
 }
 
@@ -221,6 +227,44 @@ impl CircleDrawer {
         }
     }
 
+    fn calculate_dialog_position(&self, circle_center: Point, circle_diameter: f32) -> (f32, f32) {
+        let canvas_y_offset = CONTROLS_HEIGHT + 10.0; // Include top padding
+        let circle_y_in_window = circle_center.y + canvas_y_offset;
+
+        // Try to place dialog close to the right of the circle (10px gap)
+        let preferred_x = circle_center.x + circle_diameter / 2.0 + 10.0;
+        let preferred_y = circle_y_in_window - DIALOG_HEIGHT / 2.0;
+
+        // Check if dialog fits to the right
+        let x = if preferred_x + DIALOG_WIDTH <= WINDOW_WIDTH - 10.0 {
+            preferred_x
+        } else {
+            // Try to the left of the circle (10px gap)
+            let left_x = circle_center.x - circle_diameter / 2.0 - DIALOG_WIDTH - 10.0;
+            if left_x >= 10.0 {
+                left_x
+            } else {
+                // Place above or below the circle if sides don't work
+                (circle_center.x - DIALOG_WIDTH / 2.0).clamp(10.0, WINDOW_WIDTH - DIALOG_WIDTH - 10.0)
+            }
+        };
+
+        // Ensure dialog stays within vertical bounds
+        let y = if preferred_y < canvas_y_offset {
+            canvas_y_offset
+        } else if preferred_y + DIALOG_HEIGHT > WINDOW_HEIGHT - 10.0 {
+            WINDOW_HEIGHT - DIALOG_HEIGHT - 10.0
+        } else {
+            preferred_y
+        };
+
+        // Clamp to ensure we're within bounds
+        let x = x.clamp(10.0, WINDOW_WIDTH - DIALOG_WIDTH - 10.0);
+        let y = y.clamp(canvas_y_offset, WINDOW_HEIGHT - DIALOG_HEIGHT - 10.0);
+
+        (x, y)
+    }
+
     fn view(&self) -> Element<'_, Message> {
         let undo_button = button("Undo").on_press_maybe(if self.history_index > 0 {
             Some(Message::Undo)
@@ -235,7 +279,9 @@ impl CircleDrawer {
                 None
             });
 
-        let controls = row![undo_button, redo_button].spacing(10);
+        let controls = container(row![undo_button, redo_button].spacing(10))
+            .width(Length::Fill)
+            .align_x(Horizontal::Center);
 
         let canvas_widget = Canvas::new(CircleCanvas {
             circles: &self.circles,
@@ -244,23 +290,37 @@ impl CircleDrawer {
         .width(Length::Fill)
         .height(Length::Fill);
 
-        let mut content = column![controls, canvas_widget].spacing(10).padding(10);
+        let content = column![controls, canvas_widget].spacing(10).padding(10);
 
         if self.dialog_open {
+            // Calculate dialog position to avoid covering the circle and going off screen
+            let (dialog_x, dialog_y) = if let Some(index) = self.selected_circle {
+                let circle = &self.circles[index];
+                self.calculate_dialog_position(circle.center, circle.diameter)
+            } else {
+                // Fallback to center if no circle selected
+                ((WINDOW_WIDTH - DIALOG_WIDTH) / 2.0, (WINDOW_HEIGHT - DIALOG_HEIGHT) / 2.0)
+            };
+
             let dialog_content = column![
-                text("Adjust diameter:"),
+                text("Adjust diameter:").size(16),
                 slider(
                     MIN_DIAMETER..=MAX_DIAMETER,
                     self.temp_diameter,
                     Message::DiameterChanged
-                ),
-                text(format!("Diameter: {:.1}", self.temp_diameter)),
-                button("Close").on_press(Message::CloseDialog)
+                )
+                .width(Length::Fill),
+                text(format!("Diameter: {:.1}", self.temp_diameter)).size(14),
+                container(button("Close").on_press(Message::CloseDialog).padding(10))
+                    .width(Length::Fill)
+                    .align_x(Horizontal::Center)
             ]
-            .spacing(10)
-            .padding(20);
+            .spacing(20)
+            .padding(30)
+            .width(DIALOG_WIDTH)
+            .height(DIALOG_HEIGHT);
 
-            let dialog = container(dialog_content)
+            let dialog_container = container(dialog_content)
                 .style(|_theme| container::Style {
                     background: Some(Color::WHITE.into()),
                     border: Border {
@@ -270,13 +330,28 @@ impl CircleDrawer {
                     },
                     ..Default::default()
                 })
-                .center(Length::Fill)
-                .center_y(Length::Fill);
+                .width(DIALOG_WIDTH)
+                .height(DIALOG_HEIGHT);
 
-            content = column![content, dialog];
+            // Position the dialog using padding on a transparent container
+            let positioned_dialog = container(dialog_container)
+                .padding(iced::Padding {
+                    top: dialog_y,
+                    right: 0.0,
+                    bottom: 0.0,
+                    left: dialog_x,
+                })
+                .width(Length::Fill)
+                .height(Length::Fill);
+
+            // Use Stack to overlay the dialog without affecting layout
+            Stack::new()
+                .push(content)
+                .push(positioned_dialog)
+                .into()
+        } else {
+            content.into()
         }
-
-        content.into()
     }
 }
 
