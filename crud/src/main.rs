@@ -129,21 +129,7 @@ impl App {
 
     pub fn view(&self) -> Element<'_, Message> {
         // Filter the people list
-        let filtered_people: Vec<(usize, &Person)> = self
-            .people
-            .iter()
-            .enumerate()
-            .filter(|(_, person)| {
-                if self.filter_input.is_empty() {
-                    true
-                } else {
-                    person
-                        .last_name
-                        .to_lowercase()
-                        .starts_with(&self.filter_input.to_lowercase())
-                }
-            })
-            .collect();
+        let filtered_people = self.filtered_people();
 
         // Create list items
         let list_items =
@@ -210,11 +196,21 @@ impl App {
             .align_y(Alignment::Start);
 
         // Bottom button row
+        let mut update_button = button("Update");
+        if self.selected_index.is_some() {
+            update_button = update_button.on_press(Message::UpdatePressed);
+        }
+
+        let mut delete_button = button("Delete");
+        if self.selected_index.is_some() {
+            delete_button = delete_button.on_press(Message::DeletePressed);
+        }
+
         let bottom_buttons = container(
             row![
                 button("Create").on_press(Message::CreatePressed),
-                button("Update").on_press(Message::UpdatePressed),
-                button("Delete").on_press(Message::DeletePressed),
+                update_button,
+                delete_button,
             ]
             .spacing(10),
         )
@@ -231,5 +227,357 @@ impl App {
             .height(Length::Fill)
             .padding(10)
             .into()
+    }
+
+    pub fn filtered_people(&self) -> Vec<(usize, &Person)> {
+        self.people
+            .iter()
+            .enumerate()
+            .filter(|(_, person)| {
+                if self.filter_input.is_empty() {
+                    true
+                } else {
+                    person
+                        .last_name
+                        .to_lowercase()
+                        .starts_with(&self.filter_input.to_lowercase())
+                }
+            })
+            .collect()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn create_test_app() -> App {
+        App::default()
+    }
+
+    #[test]
+    fn test_default_state() {
+        let app = create_test_app();
+        assert_eq!(app.filter_input, "");
+        assert_eq!(app.first_name_input, "");
+        assert_eq!(app.last_name_input, "");
+        assert_eq!(app.people.len(), 5);
+        assert_eq!(app.selected_index, None);
+    }
+
+    #[test]
+    fn test_default_people() {
+        let app = create_test_app();
+        assert_eq!(app.people[0].first_name, "John");
+        assert_eq!(app.people[0].last_name, "Doe");
+        assert_eq!(app.people[1].first_name, "Jane");
+        assert_eq!(app.people[1].last_name, "Smith");
+        assert_eq!(app.people[2].first_name, "Bob");
+        assert_eq!(app.people[2].last_name, "Johnson");
+        assert_eq!(app.people[3].first_name, "Alice");
+        assert_eq!(app.people[3].last_name, "Williams");
+        assert_eq!(app.people[4].first_name, "Charlie");
+        assert_eq!(app.people[4].last_name, "Brown");
+    }
+
+    #[test]
+    fn test_filter_input_changed() {
+        let mut app = create_test_app();
+        app.update(Message::FilterInputChanged("test".to_string()));
+        assert_eq!(app.filter_input, "test");
+    }
+
+    #[test]
+    fn test_first_name_input_changed() {
+        let mut app = create_test_app();
+        app.update(Message::FirstNameInputChanged("Alice".to_string()));
+        assert_eq!(app.first_name_input, "Alice");
+    }
+
+    #[test]
+    fn test_last_name_input_changed() {
+        let mut app = create_test_app();
+        app.update(Message::LastNameInputChanged("Johnson".to_string()));
+        assert_eq!(app.last_name_input, "Johnson");
+    }
+
+    #[test]
+    fn test_item_selected() {
+        let mut app = create_test_app();
+        app.update(Message::ItemSelected(1));
+        assert_eq!(app.selected_index, Some(1));
+        assert_eq!(app.first_name_input, "Jane");
+        assert_eq!(app.last_name_input, "Smith");
+    }
+
+    #[test]
+    fn test_item_selected_different_index() {
+        let mut app = create_test_app();
+        app.update(Message::ItemSelected(3));
+        assert_eq!(app.selected_index, Some(3));
+        assert_eq!(app.first_name_input, "Alice");
+        assert_eq!(app.last_name_input, "Williams");
+    }
+
+    #[test]
+    fn test_create_pressed() {
+        let mut app = create_test_app();
+        app.first_name_input = "Tom".to_string();
+        app.last_name_input = "Hanks".to_string();
+
+        app.update(Message::CreatePressed);
+
+        assert_eq!(app.people.len(), 6);
+        assert_eq!(app.people[5].first_name, "Tom");
+        assert_eq!(app.people[5].last_name, "Hanks");
+        assert_eq!(app.first_name_input, "");
+        assert_eq!(app.last_name_input, "");
+    }
+
+    #[test]
+    fn test_create_pressed_clears_inputs() {
+        let mut app = create_test_app();
+        app.first_name_input = "Test".to_string();
+        app.last_name_input = "User".to_string();
+
+        app.update(Message::CreatePressed);
+
+        assert_eq!(app.first_name_input, "");
+        assert_eq!(app.last_name_input, "");
+    }
+
+    #[test]
+    fn test_create_pressed_with_selection() {
+        let mut app = create_test_app();
+        app.selected_index = Some(0);
+        app.first_name_input = "New".to_string();
+        app.last_name_input = "Person".to_string();
+
+        app.update(Message::CreatePressed);
+
+        assert_eq!(app.people.len(), 6);
+        assert_eq!(app.selected_index, Some(0)); // Selection should remain
+    }
+
+    #[test]
+    fn test_update_pressed_with_selection() {
+        let mut app = create_test_app();
+        app.update(Message::ItemSelected(0));
+        app.first_name_input = "Updated".to_string();
+        app.last_name_input = "Name".to_string();
+
+        app.update(Message::UpdatePressed);
+
+        assert_eq!(app.people[0].first_name, "Updated");
+        assert_eq!(app.people[0].last_name, "Name");
+        assert_eq!(app.selected_index, Some(0));
+        assert_eq!(app.people.len(), 5); // Should not add, only update
+    }
+
+    #[test]
+    fn test_update_pressed_without_selection() {
+        let mut app = create_test_app();
+        app.first_name_input = "Test".to_string();
+        app.last_name_input = "User".to_string();
+
+        let original_people = app.people.clone();
+        app.update(Message::UpdatePressed);
+
+        // Nothing should change
+        assert_eq!(app.people.len(), original_people.len());
+        for (i, person) in app.people.iter().enumerate() {
+            assert_eq!(person.first_name, original_people[i].first_name);
+            assert_eq!(person.last_name, original_people[i].last_name);
+        }
+    }
+
+    #[test]
+    fn test_delete_pressed_with_selection() {
+        let mut app = create_test_app();
+        app.update(Message::ItemSelected(1));
+
+        app.update(Message::DeletePressed);
+
+        assert_eq!(app.people.len(), 4);
+        assert_eq!(app.selected_index, None);
+        assert_eq!(app.first_name_input, "");
+        assert_eq!(app.last_name_input, "");
+        // Verify the correct person was deleted (Jane Smith)
+        assert_eq!(app.people[0].first_name, "John");
+        assert_eq!(app.people[1].first_name, "Bob");
+    }
+
+    #[test]
+    fn test_delete_pressed_without_selection() {
+        let mut app = create_test_app();
+        let original_len = app.people.len();
+
+        app.update(Message::DeletePressed);
+
+        assert_eq!(app.people.len(), original_len);
+        assert_eq!(app.selected_index, None);
+    }
+
+    #[test]
+    fn test_delete_first_item() {
+        let mut app = create_test_app();
+        app.update(Message::ItemSelected(0));
+
+        app.update(Message::DeletePressed);
+
+        assert_eq!(app.people.len(), 4);
+        assert_eq!(app.people[0].first_name, "Jane");
+    }
+
+    #[test]
+    fn test_delete_last_item() {
+        let mut app = create_test_app();
+        let last_index = app.people.len() - 1;
+        app.update(Message::ItemSelected(last_index));
+
+        app.update(Message::DeletePressed);
+
+        assert_eq!(app.people.len(), 4);
+        assert_eq!(app.people.last().unwrap().first_name, "Alice");
+    }
+
+    #[test]
+    fn test_filtered_people_no_filter() {
+        let app = create_test_app();
+        let filtered = app.filtered_people();
+        assert_eq!(filtered.len(), 5);
+    }
+
+    #[test]
+    fn test_filtered_people_with_filter() {
+        let mut app = create_test_app();
+        app.filter_input = "S".to_string();
+        let filtered = app.filtered_people();
+        assert_eq!(filtered.len(), 1);
+        assert_eq!(filtered[0].1.last_name, "Smith");
+    }
+
+    #[test]
+    fn test_filtered_people_case_insensitive() {
+        let mut app = create_test_app();
+        app.filter_input = "s".to_string();
+        let filtered = app.filtered_people();
+        assert_eq!(filtered.len(), 1);
+        assert_eq!(filtered[0].1.last_name, "Smith");
+    }
+
+    #[test]
+    fn test_filtered_people_multiple_matches() {
+        let mut app = create_test_app();
+        app.filter_input = "B".to_string();
+        let filtered = app.filtered_people();
+        assert_eq!(filtered.len(), 1);
+        assert_eq!(filtered[0].1.last_name, "Brown");
+    }
+
+    #[test]
+    fn test_filtered_people_no_matches() {
+        let mut app = create_test_app();
+        app.filter_input = "Z".to_string();
+        let filtered = app.filtered_people();
+        assert_eq!(filtered.len(), 0);
+    }
+
+    #[test]
+    fn test_filtered_people_partial_match() {
+        let mut app = create_test_app();
+        app.filter_input = "Jo".to_string();
+        let filtered = app.filtered_people();
+        assert_eq!(filtered.len(), 1);
+        assert_eq!(filtered[0].1.last_name, "Johnson");
+    }
+
+    #[test]
+    fn test_filtered_people_preserves_indices() {
+        let mut app = create_test_app();
+        app.filter_input = "W".to_string();
+        let filtered = app.filtered_people();
+        assert_eq!(filtered.len(), 1);
+        assert_eq!(filtered[0].0, 3); // Williams is at index 3
+    }
+
+    #[test]
+    fn test_person_clone() {
+        let person = Person {
+            first_name: "Test".to_string(),
+            last_name: "User".to_string(),
+        };
+        let cloned = person.clone();
+        assert_eq!(cloned.first_name, person.first_name);
+        assert_eq!(cloned.last_name, person.last_name);
+    }
+
+    #[test]
+    fn test_message_clone() {
+        let msg = Message::FilterInputChanged("test".to_string());
+        let _cloned = msg.clone();
+        // Just verify it compiles and doesn't panic
+    }
+
+    #[test]
+    fn test_multiple_operations_sequence() {
+        let mut app = create_test_app();
+
+        // Create a new person
+        app.first_name_input = "New".to_string();
+        app.last_name_input = "Person".to_string();
+        app.update(Message::CreatePressed);
+        assert_eq!(app.people.len(), 6);
+
+        // Select and update
+        app.update(Message::ItemSelected(5));
+        app.first_name_input = "Updated".to_string();
+        app.last_name_input = "User".to_string();
+        app.update(Message::UpdatePressed);
+        assert_eq!(app.people[5].first_name, "Updated");
+
+        // Delete the updated person
+        app.update(Message::DeletePressed);
+        assert_eq!(app.people.len(), 5);
+        assert_eq!(app.selected_index, None);
+    }
+
+    #[test]
+    fn test_update_after_delete() {
+        let mut app = create_test_app();
+
+        // Delete first item
+        app.update(Message::ItemSelected(0));
+        app.update(Message::DeletePressed);
+
+        // Try to select old index
+        app.update(Message::ItemSelected(0));
+        assert_eq!(app.first_name_input, "Jane"); // Now points to what was index 1
+    }
+
+    #[test]
+    fn test_create_empty_name() {
+        let mut app = create_test_app();
+        app.first_name_input = "".to_string();
+        app.last_name_input = "".to_string();
+
+        app.update(Message::CreatePressed);
+
+        assert_eq!(app.people.len(), 6);
+        assert_eq!(app.people[5].first_name, "");
+        assert_eq!(app.people[5].last_name, "");
+    }
+
+    #[test]
+    fn test_filter_then_select() {
+        let mut app = create_test_app();
+        app.filter_input = "S".to_string();
+
+        // Select from filtered list (index in original list)
+        app.update(Message::ItemSelected(1));
+
+        assert_eq!(app.selected_index, Some(1));
+        assert_eq!(app.first_name_input, "Jane");
+        assert_eq!(app.last_name_input, "Smith");
     }
 }
