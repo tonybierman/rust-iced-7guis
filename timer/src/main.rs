@@ -20,7 +20,7 @@ pub fn main() -> iced::Result {
 enum Message {
     Increment,
     DurationChanged(f32),
-    Reset,
+    ResetPressed,
 }
 
 #[derive(Default)]
@@ -52,7 +52,7 @@ impl App {
             Message::DurationChanged(new_duration) => {
                 self.duration = new_duration;
             }
-            Message::Reset => {
+            Message::ResetPressed => {
                 self.elapsed = 0.0;
             }
         }
@@ -80,7 +80,7 @@ impl App {
                 .padding(iced::padding::bottom(20))
                 .spacing(10)
                 .align_y(Vertical::Center),
-                container(button("Reset").on_press(Message::Reset))
+                container(button("Reset").on_press(Message::ResetPressed))
                     .align_y(Vertical::Center)
                     .center_x(iced::Length::Fill),
             ]
@@ -98,6 +98,28 @@ impl App {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use iced_test::{Error, simulator};
+
+    #[test]
+    fn ui_timer_reset() -> Result<(), Error> {
+        let mut timer = App {
+            elapsed: 0.0,
+            duration: 10.0,
+            max_duration: 100.0,
+        };
+
+        {
+            let mut ui = simulator(timer.view());
+            let _ = ui.click("Reset")?;
+        } // ui is dropped here
+
+        timer.update(Message::ResetPressed);
+
+        assert_eq!(timer.elapsed, 0.0);
+        assert_eq!(timer.duration, 10.0); // Duration unchanged
+
+        Ok(())
+    }
 
     #[test]
     fn test_initial_state() {
@@ -168,7 +190,7 @@ mod tests {
             duration: 10.0,
             max_duration: 100.0,
         };
-        app.update(Message::Reset);
+        app.update(Message::ResetPressed);
         assert_eq!(app.elapsed, 0.0);
         assert_eq!(app.duration, 10.0); // Duration unchanged
     }
@@ -181,7 +203,7 @@ mod tests {
             max_duration: 100.0,
         };
         // Timer is stopped
-        app.update(Message::Reset);
+        app.update(Message::ResetPressed);
         assert_eq!(app.elapsed, 0.0);
 
         // Timer should be able to increment again

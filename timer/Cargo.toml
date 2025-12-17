@@ -6,3 +6,6 @@ edition = "2024"
 [dependencies]
 iced.workspace = true
 iced.features = ["tokio", "debug"]
+
+[dev-dependencies]
+iced_test.workspace = true
