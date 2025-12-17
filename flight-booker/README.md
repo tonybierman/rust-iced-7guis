@@ -32,3 +32,7 @@ When B is clicked, display a message confirming the selection:
 
 ## Focus
 Demonstrate clear, succinct, and explicit constraint modeling in the source code without excessive scaffolding.
+
+## About 7GUIs: A GUI Programming Benchmark
+
+There are countless GUI toolkits in different languages and with diverse approaches to GUI development. Yet, diligent comparisons between them are rare. Whereas in a traditional benchmark competing implementations are compared in terms of their resource consumption, here implementations are compared in terms of their notation. To that end, [7GUIs](https://eugenkiss.github.io/7guis/) defines seven tasks that represent typical challenges in GUI programming. In addition, 7GUIs provides a recommended set of evaluation dimensions.

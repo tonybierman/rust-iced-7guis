@@ -31,3 +31,7 @@ A Iced GUI app that demonstrates concurrency, competing user/signal interactions
 ## Implementation
 
 Built with Rust and the Iced GUI framework. Timer ticks occur every 50ms via subscription.
+
+## About 7GUIs: A GUI Programming Benchmark
+
+There are countless GUI toolkits in different languages and with diverse approaches to GUI development. Yet, diligent comparisons between them are rare. Whereas in a traditional benchmark competing implementations are compared in terms of their resource consumption, here implementations are compared in terms of their notation. To that end, [7GUIs](https://eugenkiss.github.io/7guis/) defines seven tasks that represent typical challenges in GUI programming. In addition, 7GUIs provides a recommended set of evaluation dimensions.
