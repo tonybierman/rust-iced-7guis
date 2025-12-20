@@ -18,33 +18,6 @@ Implementation of the [7GUIs benchmark](https://7guis.github.io/7guis/) using Ru
 
 [![CI](https://github.com/tonybierman/rust-iced-7guis/actions/workflows/CI.yml/badge.svg)](https://github.com/tonybierman/rust-iced-7guis/actions/workflows/CI.yml)
 
-
-| Binary | Implemented | 
-|--------|-------------|
-| Counter |✅|
-| Temperature Converter |✅|
-| Flight Booker |✅|
-| Timer |✅|
-| CRUD |✅|
-| Circle Drawer |✅|
-| Cells |✅|
-
-## Structure
-
-This repository is organized as a Cargo workspace with each GUI as a separate binary crate:
-
-```
-rust-iced-7guis/
-├── Cargo.toml              # Workspace configuration
-├── counter/                # Task 1: Counter
-├── temperature-converter/  # Task 2: Temperature Converter
-├── flight-booker/          # Task 3: Flight Booker
-├── timer/                  # Task 4: Timer
-├── crud/                   # Task 5: CRUD
-├── circle-drawer/          # Task 6: Circle Drawer
-└── cells/                  # Task 7: Cells (Spreadsheet)
-```
-
 ## Running
 
 To run a specific GUI:
