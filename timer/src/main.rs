@@ -96,9 +96,21 @@ impl App {
 }
 
 #[cfg(test)]
+#[allow(unused_must_use)]
 mod tests {
     use super::*;
-    use iced_test::{Error, simulator};
+
+    use iced::Settings;
+    use iced_test::{Error, Simulator};
+
+    fn simulator(app: &App) -> Simulator<'_, Message> {
+        Simulator::with_settings(
+            Settings {
+                ..Settings::default()
+            },
+            app.view(),
+        )
+    }
 
     #[test]
     fn ui_timer_reset() -> Result<(), Error> {
@@ -108,12 +120,12 @@ mod tests {
             max_duration: 100.0,
         };
 
-        {
-            let mut ui = simulator(timer.view());
-            let _ = ui.click("Reset")?;
-        } // ui is dropped here
+        let mut ui = simulator(&timer);
+        let _ = ui.click("Reset")?;
 
-        timer.update(Message::ResetPressed);
+        for message in ui.into_messages() {
+            timer.update(message);
+        }
 
         assert_eq!(timer.elapsed, 0.0);
         assert_eq!(timer.duration, 10.0); // Duration unchanged
