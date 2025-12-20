@@ -1,9 +1,9 @@
-use iced::widget::{Column, Row, button, container, scrollable, text, text_input};
+use iced::widget::{Column, Id, Row, button, container, scrollable, text, text_input};
 use iced::{Element, Length, Task};
 use std::collections::{HashMap, HashSet};
 
 fn main() -> iced::Result {
-    iced::application(Cells::new, Cells::update, Cells::view)
+    iced::application(App::new, App::update, App::view)
         .window_size((800.0, 600.0))
         .run()
 }
@@ -25,7 +25,7 @@ enum CellValue {
     Error(String),
 }
 
-struct Cells {
+struct App {
     // Cell data: formula input by user
     formulas: HashMap<(usize, usize), String>,
     // Cell data: evaluated value
@@ -40,7 +40,7 @@ struct Cells {
     editing_formula: String,
 }
 
-impl Cells {
+impl App {
     fn new() -> (Self, Task<Message>) {
         (
             Self {
@@ -196,12 +196,15 @@ impl Cells {
                 // Create cell widget with consistent structure
                 let cell_widget: Element<'_, Message> = if is_editing {
                     // Editing cell - show text input with primary border
+                    let cell_id: &'static str =
+                        Box::leak(format!("cell-input-{}-{}", row, col).into_boxed_str());
                     container(
                         text_input("", &cell_content)
                             .on_input(Message::FormulaChanged)
                             .on_submit(Message::FinishEditing)
                             .size(14)
                             .padding([5, 5])
+                            .id(Id::new(cell_id))
                             .style(|theme: &iced::Theme, _status| {
                                 let palette = theme.palette();
                                 text_input::Style {
@@ -237,35 +240,40 @@ impl Cells {
                     // Normal cell - show as button with aligned text
                     let text_widget = if is_number {
                         // Numbers: right-aligned
-                        container(text(cell_content).size(14))
+                        container(text(cell_content.clone()).size(14))
                             .width(Length::Fill)
                             .align_right(70)
                     } else {
                         // Text: left-aligned
-                        container(text(cell_content).size(14))
+                        container(text(cell_content.clone()).size(14))
                             .width(Length::Fill)
                             .align_left(5)
                     };
 
-                    button(text_widget)
-                        .on_press(Message::CellClicked(row, col))
-                        .width(80)
-                        .height(30)
-                        .padding(5)
-                        .style(|theme: &iced::Theme, _status| {
-                            let palette = theme.palette();
-                            button::Style {
-                                background: Some(iced::Background::Color(palette.background)),
-                                border: iced::Border {
-                                    color: palette.text.scale_alpha(0.3),
-                                    width: 0.5,
-                                    radius: 0.0.into(),
-                                },
-                                text_color: palette.text,
-                                ..Default::default()
-                            }
-                        })
-                        .into()
+                    let cell_id: &'static str =
+                        Box::leak(format!("cell-{}-{}", row, col).into_boxed_str());
+                    container(
+                        button(text_widget)
+                            .on_press(Message::CellClicked(row, col))
+                            .width(80)
+                            .height(30)
+                            .padding(5)
+                            .style(|theme: &iced::Theme, _status| {
+                                let palette = theme.palette();
+                                button::Style {
+                                    background: Some(iced::Background::Color(palette.background)),
+                                    border: iced::Border {
+                                        color: palette.text.scale_alpha(0.3),
+                                        width: 0.5,
+                                        radius: 0.0.into(),
+                                    },
+                                    text_color: palette.text,
+                                    ..Default::default()
+                                }
+                            }),
+                    )
+                    .id(Id::new(cell_id))
+                    .into()
                 };
 
                 data_row = data_row.push(cell_widget);
@@ -490,8 +498,99 @@ fn parse_dependencies(formula: &str) -> HashSet<(usize, usize)> {
 }
 
 #[cfg(test)]
+#[allow(unused_must_use)]
 mod tests {
     use super::*;
+
+    use iced::Settings;
+    use iced_test::{Error, Simulator};
+
+    fn simulator(app: &App) -> Simulator<'_, Message> {
+        Simulator::with_settings(
+            Settings {
+                ..Settings::default()
+            },
+            app.view(),
+        )
+    }
+
+    #[test]
+    fn ui_cell_test() -> Result<(), Error> {
+        use iced_test::selector::id;
+
+        let (mut app, _command) = App::new();
+
+        // Click cell A0 (row 0, col 0)
+        {
+            let mut ui = simulator(&app);
+            ui.click(id("cell-0-0"))?;
+            for message in ui.into_messages() {
+                app.update(message);
+            }
+        }
+
+        // Type "5" into cell A0
+        {
+            let mut ui = simulator(&app);
+            let _input = ui.click(id("cell-input-0-0"))?;
+            ui.typewrite("5");
+            for message in ui.into_messages() {
+                app.update(message);
+            }
+        }
+
+        // Click cell A1 (row 1, col 0) - this finishes editing A0
+        {
+            let mut ui = simulator(&app);
+            ui.click(id("cell-1-0"))?;
+            for message in ui.into_messages() {
+                app.update(message);
+            }
+        }
+
+        // Type "3" into cell A1
+        {
+            let mut ui = simulator(&app);
+            let _input = ui.click(id("cell-input-1-0"))?;
+            ui.typewrite("3");
+            for message in ui.into_messages() {
+                app.update(message);
+            }
+        }
+
+        // Click cell A2 (row 2, col 0) - this finishes editing A1
+        {
+            let mut ui = simulator(&app);
+            ui.click(id("cell-2-0"))?;
+            for message in ui.into_messages() {
+                app.update(message);
+            }
+        }
+
+        // Type "=A0+A1" into cell A2
+        {
+            let mut ui = simulator(&app);
+            let _input = ui.click(id("cell-input-2-0"))?;
+            ui.typewrite("=A0+A1");
+            for message in ui.into_messages() {
+                app.update(message);
+            }
+        }
+
+        // Click somewhere else to finish editing A2 (click on A3)
+        {
+            let mut ui = simulator(&app);
+            ui.click(id("cell-3-0"))?;
+            for message in ui.into_messages() {
+                app.update(message);
+            }
+        }
+
+        // Verify A2 shows "8.00"
+        assert_eq!(app.get_cell_display(2, 0), "8.00");
+
+        Ok(())
+    }
 
     #[test]
     fn test_col_to_letter() {
@@ -562,70 +661,70 @@ mod tests {
 
     #[test]
     fn test_evaluate_formula_number() {
-        let cells = Cells::new().0;
+        let cells = App::new().0;
         let result = cells.evaluate_formula("123");
         assert!(matches!(result, CellValue::Number(n) if (n - 123.0).abs() < 0.001));
     }
 
     #[test]
     fn test_evaluate_formula_decimal() {
-        let cells = Cells::new().0;
+        let cells = App::new().0;
         let result = cells.evaluate_formula("45.67");
         assert!(matches!(result, CellValue::Number(n) if (n - 45.67).abs() < 0.001));
     }
 
     #[test]
     fn test_evaluate_formula_text() {
-        let cells = Cells::new().0;
+        let cells = App::new().0;
         let result = cells.evaluate_formula("Hello");
         assert!(matches!(result, CellValue::Text(s) if s == "Hello"));
     }
 
     #[test]
     fn test_evaluate_formula_simple_addition() {
-        let cells = Cells::new().0;
+        let cells = App::new().0;
         let result = cells.evaluate_formula("=5+3");
         assert!(matches!(result, CellValue::Number(n) if (n - 8.0).abs() < 0.001));
     }
 
     #[test]
     fn test_evaluate_formula_subtraction() {
-        let cells = Cells::new().0;
+        let cells = App::new().0;
         let result = cells.evaluate_formula("=10-4");
         assert!(matches!(result, CellValue::Number(n) if (n - 6.0).abs() < 0.001));
     }
 
     #[test]
     fn test_evaluate_formula_multiplication() {
-        let cells = Cells::new().0;
+        let cells = App::new().0;
         let result = cells.evaluate_formula("=6*7");
         assert!(matches!(result, CellValue::Number(n) if (n - 42.0).abs() < 0.001));
     }
 
     #[test]
     fn test_evaluate_formula_division() {
-        let cells = Cells::new().0;
+        let cells = App::new().0;
         let result = cells.evaluate_formula("=20/4");
         assert!(matches!(result, CellValue::Number(n) if (n - 5.0).abs() < 0.001));
     }
 
     #[test]
     fn test_evaluate_formula_division_by_zero() {
-        let cells = Cells::new().0;
+        let cells = App::new().0;
         let result = cells.evaluate_formula("=10/0");
         assert!(matches!(result, CellValue::Error(e) if e == "DIV0"));
     }
 
     #[test]
     fn test_evaluate_formula_invalid() {
-        let cells = Cells::new().0;
+        let cells = App::new().0;
         let result = cells.evaluate_formula("=ABC");
         assert!(matches!(result, CellValue::Error(_)));
     }
 
     #[test]
     fn test_evaluate_formula_cell_reference() {
-        let mut cells = Cells::new().0;
+        let mut cells = App::new().0;
         // Set A0 to 42
         cells.values.insert((0, 0), CellValue::Number(42.0));
 
@@ -635,7 +734,7 @@ mod tests {
 
     #[test]
     fn test_evaluate_formula_cell_reference_addition() {
-        let mut cells = Cells::new().0;
+        let mut cells = App::new().0;
         cells.values.insert((0, 0), CellValue::Number(10.0));
         cells.values.insert((1, 1), CellValue::Number(20.0));
 
@@ -645,7 +744,7 @@ mod tests {
 
     #[test]
     fn test_evaluate_formula_text_in_formula() {
-        let mut cells = Cells::new().0;
+        let mut cells = App::new().0;
         cells
             .values
             .insert((0, 0), CellValue::Text("Hello".to_string()));
@@ -656,7 +755,7 @@ mod tests {
 
     #[test]
     fn test_update_cell_number() {
-        let mut cells = Cells::new().0;
+        let mut cells = App::new().0;
         cells.update_cell(0, 0, "42".to_string());
 
         assert_eq!(cells.formulas.get(&(0, 0)), Some(&"42".to_string()));
@@ -667,7 +766,7 @@ mod tests {
 
     #[test]
     fn test_update_cell_text() {
-        let mut cells = Cells::new().0;
+        let mut cells = App::new().0;
         cells.update_cell(0, 0, "Hello".to_string());
 
         assert_eq!(cells.formulas.get(&(0, 0)), Some(&"Hello".to_string()));
@@ -676,7 +775,7 @@ mod tests {
 
     #[test]
     fn test_update_cell_formula() {
-        let mut cells = Cells::new().0;
+        let mut cells = App::new().0;
         cells.update_cell(0, 0, "=5+3".to_string());
 
         assert_eq!(cells.formulas.get(&(0, 0)), Some(&"=5+3".to_string()));
@@ -687,7 +786,7 @@ mod tests {
 
     #[test]
     fn test_update_cell_clear() {
-        let mut cells = Cells::new().0;
+        let mut cells = App::new().0;
         cells.update_cell(0, 0, "42".to_string());
         cells.update_cell(0, 0, "".to_string());
 
@@ -697,7 +796,7 @@ mod tests {
 
     #[test]
     fn test_dependency_tracking() {
-        let mut cells = Cells::new().0;
+        let mut cells = App::new().0;
         cells.update_cell(0, 0, "10".to_string());
         cells.update_cell(1, 1, "=A0+5".to_string());
 
@@ -709,7 +808,7 @@ mod tests {
 
     #[test]
     fn test_change_propagation() {
-        let mut cells = Cells::new().0;
+        let mut cells = App::new().0;
         cells.update_cell(0, 0, "10".to_string());
         cells.update_cell(1, 1, "=A0*2".to_string());
 
@@ -729,7 +828,7 @@ mod tests {
 
     #[test]
     fn test_transitive_dependencies() {
-        let mut cells = Cells::new().0;
+        let mut cells = App::new().0;
         cells.update_cell(0, 0, "5".to_string());
         cells.update_cell(1, 1, "=A0*2".to_string());
         cells.update_cell(2, 2, "=B1+10".to_string());
@@ -753,7 +852,7 @@ mod tests {
 
     #[test]
     fn test_get_cell_display_number() {
-        let mut cells = Cells::new().0;
+        let mut cells = App::new().0;
         cells.values.insert((0, 0), CellValue::Number(42.5));
 
         assert_eq!(cells.get_cell_display(0, 0), "42.50");
@@ -761,7 +860,7 @@ mod tests {
 
     #[test]
     fn test_get_cell_display_integer() {
-        let mut cells = Cells::new().0;
+        let mut cells = App::new().0;
         cells.values.insert((0, 0), CellValue::Number(42.0));
 
         assert_eq!(cells.get_cell_display(0, 0), "42.00");
@@ -769,7 +868,7 @@ mod tests {
 
     #[test]
     fn test_get_cell_display_text() {
-        let mut cells = Cells::new().0;
+        let mut cells = App::new().0;
         cells
             .values
             .insert((0, 0), CellValue::Text("Hello".to_string()));
@@ -779,7 +878,7 @@ mod tests {
 
     #[test]
     fn test_get_cell_display_error() {
-        let mut cells = Cells::new().0;
+        let mut cells = App::new().0;
         cells
             .values
             .insert((0, 0), CellValue::Error("DIV0".to_string()));
@@ -789,13 +888,13 @@ mod tests {
 
     #[test]
     fn test_get_cell_display_empty() {
-        let cells = Cells::new().0;
+        let cells = App::new().0;
         assert_eq!(cells.get_cell_display(0, 0), "");
     }
 
     #[test]
     fn test_is_cell_number() {
-        let mut cells = Cells::new().0;
+        let mut cells = App::new().0;
         cells.values.insert((0, 0), CellValue::Number(42.0));
         cells
             .values
@@ -812,7 +911,7 @@ mod tests {
 
     #[test]
     fn test_dependency_removal_on_update() {
-        let mut cells = Cells::new().0;
+        let mut cells = App::new().0;
         cells.update_cell(0, 0, "10".to_string());
         cells.update_cell(1, 1, "=A0+5".to_string());
 
