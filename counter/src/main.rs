@@ -53,14 +53,26 @@ impl App {
 }
 
 #[cfg(test)]
+#[allow(unused_must_use)]
 mod tests {
     use super::*;
-    use iced_test::{Error, simulator};
+
+    use iced::Settings;
+    use iced_test::{Error, Simulator};
+
+    fn simulator(app: &App) -> Simulator<'_, Message> {
+        Simulator::with_settings(
+            Settings {
+                ..Settings::default()
+            },
+            app.view(),
+        )
+    }
 
     #[test]
     fn it_counts() -> Result<(), Error> {
         let mut counter = App { value: 0 };
-        let mut ui = simulator(counter.view());
+        let mut ui = simulator(&counter);
 
         let _ = ui.click("Increment")?;
         let _ = ui.click("Increment")?;
@@ -71,7 +83,7 @@ mod tests {
 
         assert_eq!(counter.value, 2);
 
-        let mut ui = simulator(counter.view());
+        let mut ui = simulator(&counter);
         assert!(ui.find("2").is_ok(), "Counter should display 2!");
 
         Ok(())
