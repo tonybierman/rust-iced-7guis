@@ -57,6 +57,7 @@ impl App {
                 self.celsius = self.fahrenheit.map(|f| (f - 32.0) * (5.0 / 9.0));
                 if let Some(c) = self.celsius {
                     self.celsius_input = format!("{:.2}", c);
+                    println!("Celsius: {}", c);
                 }
             }
         }
@@ -66,10 +67,12 @@ impl App {
         let row = row![
             text("Celsius:"),
             text_input("0", &self.celsius_input)
+                .id("celsius-input")
                 .on_input(Message::CelsiusChanged)
                 .width(80),
             text("Fahrenheit:"),
             text_input("32", &self.fahrenheit_input)
+                .id("farenheit-input")
                 .on_input(Message::FahrenheitChanged)
                 .width(80),
         ]
@@ -83,28 +86,60 @@ impl App {
 }
 
 #[cfg(test)]
+#[allow(unused_must_use)]
 mod tests {
     use super::*;
-    use iced_test::{Error, simulator};
+    use iced::Settings;
+    use iced_test::selector::id;
+    use iced_test::{Error, Simulator};
+
+    fn simulator(app: &App) -> Simulator<'_, Message> {
+        Simulator::with_settings(
+            Settings {
+                ..Settings::default()
+            },
+            app.view(),
+        )
+    }
 
     #[test]
-    fn it_calcs() -> Result<(), Error> {
-        let calc = App {
-            fahrenheit_input: "32".to_string(),
-            ..App::default()
+    fn ui_calc_farenheit_to_celsius() -> Result<(), Error> {
+        let mut app = App {
+            celsius: None,
+            fahrenheit: None,
+            celsius_input: String::new(),
+            fahrenheit_input: String::new(),
         };
 
-        // TODO: Add more interaction tests here
-        // let mut ui = simulator(calc.view());
-        // let _ = ui.click("Increment")?;
-        // let _ = ui.click("Increment")?;
-        // for message in ui.into_messages() {
-        //     calc.update(message);
-        // }
-        // assert_eq!(counter.value, 2);
+        let mut ui = simulator(&app);
 
-        let mut ui = simulator(calc.view());
-        assert!(ui.find("32").is_ok(), "Farenheit should display 32!");
+        let _input = ui.click(id("farenheit-input"))?;
+        let _ = ui.typewrite("32");
+
+        for message in ui.into_messages() {
+            app.update(message);
+        }
+
+        assert_eq!(app.fahrenheit, Some(32.0));
+        assert_eq!(app.celsius, Some(0.0));
+
+        Ok(())
+    }
+
+    #[test]
+    fn ui_calc_celsius_to_farenheit() -> Result<(), Error> {
+        let (mut app, _command) = App::new();
+
+        let mut ui = simulator(&app);
+
+        let _input = ui.click(id("celsius-input"))?;
+        let _ = ui.typewrite("30");
+
+        for message in ui.into_messages() {
+            app.update(message);
+        }
+
+        assert!(app.fahrenheit == Some(86.0));
 
         Ok(())
     }
