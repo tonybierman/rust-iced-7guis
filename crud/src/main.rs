@@ -172,6 +172,7 @@ impl App {
             row![
                 text("Name:").size(12),
                 text_input("First...", &self.first_name_input)
+                    .id("first-name-input")
                     .size(12)
                     .on_input(Message::FirstNameInputChanged),
             ]
@@ -180,6 +181,7 @@ impl App {
             row![
                 text("Surname:").size(12),
                 text_input("Last...", &self.last_name_input)
+                    .id("last-name-input")
                     .size(12)
                     .on_input(Message::LastNameInputChanged),
             ]
@@ -248,29 +250,45 @@ impl App {
 }
 
 #[cfg(test)]
+#[allow(unused_must_use)]
 mod tests {
     use super::*;
-    use iced_test::{Error, simulator};
+
+    use iced::Settings;
+    use iced_test::selector::id;
+    use iced_test::{Error, Simulator};
+
+    fn simulator(app: &App) -> Simulator<'_, Message> {
+        Simulator::with_settings(
+            Settings {
+                ..Settings::default()
+            },
+            app.view(),
+        )
+    }
 
     #[test]
     fn ui_create_user() -> Result<(), Error> {
-        let mut crud = App {
-            first_name_input: "Test".to_string(),
-            last_name_input: "User".to_string(),
-            ..App::default()
-        };
+        let (mut app, _command) = App::new();
 
-        {
-            let mut ui = simulator(crud.view());
-            let _ = ui.click("Create")?;
-        } // ui is dropped here
+        let mut ui = simulator(&app);
 
-        crud.update(Message::CreatePressed);
+        let _input = ui.click(id("first-name-input"))?;
+        let _ = ui.typewrite("Dolorous");
+
+        let _input = ui.click(id("last-name-input"))?;
+        let _ = ui.typewrite("Ed");
+
+        let _ = ui.click("Create")?;
+
+        for message in ui.into_messages() {
+            app.update(message);
+        }
 
         assert!(
-            crud.people
+            app.people
                 .iter()
-                .any(|p| p.first_name == "Test" && p.last_name == "User")
+                .any(|p| p.first_name == "Dolorous" && p.last_name == "Ed")
         );
 
         Ok(())
